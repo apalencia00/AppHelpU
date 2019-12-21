@@ -1,0 +1,42 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mycompany.apphelpu.Services;
+
+import java.util.Set;
+import javax.ws.rs.core.Application;
+
+/**
+ *
+ * @author usuario
+ */
+@javax.ws.rs.ApplicationPath("/")
+public class ApplicationConfig extends Application {
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> resources = new java.util.HashSet<>();
+        addRestResourceClasses(resources);
+        return resources;
+    }
+
+    /**
+     * Do not modify addRestResourceClasses() method.
+     * It is automatically populated with
+     * all resources defined in the project.
+     * If required, comment out calling this method in getClasses().
+     */
+    private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(com.mycompany.apphelpu.Services.HelpDeskRolResource.class);
+        resources.add(com.mycompany.apphelpu.Services.InitResource.class);
+        resources.add(com.mycompany.apphelpu.Services.NotificacionResource.class);
+        resources.add(com.mycompany.apphelpu.Services.PerfilRolResource.class);
+        resources.add(com.mycompany.apphelpu.Services.PuntoVentaResource.class);
+        resources.add(com.mycompany.apphelpu.Services.ServicioResource.class);
+        resources.add(com.mycompany.apphelpu.Services.TecnicosResourceResource.class);
+        resources.add(com.mycompany.apphelpu.Services.UsuarioResource.class);
+    }
+    
+}
