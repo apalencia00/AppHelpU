@@ -19,6 +19,6 @@ public interface ITecnicos {
     public Tecnico crearTecnico();
     public int borrarTecnico();
     public Tecnico actualizarTecnico();
-    public java.util.List<Tecnico> listarTecnicos();
+    public java.util.List<Tecnico> listarTecnicos(String idserv);
     
 }

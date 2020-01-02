@@ -44,10 +44,11 @@ public class TecnicosDAO implements ITecnicos{
     }
 
     @Override
-    public List<Tecnico> listarTecnicos() {
+    public List<Tecnico> listarTecnicos(String serv_asig) {
        
         List listar_tecnicos = new LinkedList<>();
         Gson gson = new GsonBuilder().create();
+        String sql = "";
         
         try {
             try {
@@ -56,8 +57,23 @@ public class TecnicosDAO implements ITecnicos{
                 Logger.getLogger(ServicioDAO.class.getName()).log(Level.SEVERE, null, ex);
             }
             
+            if ( serv_asig == "" || serv_asig.equals("")) {
+            
             pst = cone.getCon().prepareStatement("select id_personal_tecnico,tipo_identificacion,identificacion,nombre || ' ' || apellido as nomb_comp,apellido,celular,personal,ext,fk_tipo_cargo from helpdesk_core.grn_personal_tecnico order by 1");
             
+            }else{
+                pst = cone.getCon().prepareStatement("SELECT\n" +
+"id_personal_tecnico,tipo_identificacion,identificacion,nombre || ' ' || apellido as nomb_comp,apellido,celular,personal,ext,fk_tipo_cargo\n" +
+"FROM helpdesk_core.gnr_solicitud sol,\n" +
+"     helpdesk_core.gnr_asignacion_solicitud asg,\n" +
+"     helpdesk_core.grn_personal_tecnico tec\n" +
+"\n" +
+"\n" +
+"WHERE sol.id_solicitud = asg.fk_solicitud\n" +
+"AND   sol.num_solicitud = ? \n" +
+"AND   asg.fk_tecnico = tec.id_personal_tecnico");
+                pst.setString(1, serv_asig);
+            }
             rs = pst.executeQuery();
             
             while ( rs.next() ) {

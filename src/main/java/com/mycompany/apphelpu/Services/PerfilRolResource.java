@@ -105,19 +105,11 @@ public class PerfilRolResource {
         Jedis jedis = new Jedis("10.35.10.233", 6379);
         String hash_session = CFG.getSHA(id+"#"+passw);
         
-        Set<String> sesion = jedis.smembers("nicknames");
-
-        boolean exists = jedis.sismember("nicknames", hash_session+"|"+id);
-        System.out.println(""+exists);
-        System.out.println(""+sesion);
-        
         Usuario usuario = opcion.loginUsuario(id, passw); 
         
         Calendar calendar = Calendar.getInstance();
         java.util.Date now = calendar.getTime();
-        
-        
-        
+
         java.sql.Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format( currentTimestamp );
         
@@ -126,8 +118,11 @@ public class PerfilRolResource {
             opcion.log_sesion_user_redis(id, id, timeStamp);
             
             // SAVE SESSION ON REDIS WITH JEDIS
-            jedis.sadd("nicknames", hash_session+"|"+id);
- 
+            //jedis.sadd("nicknames", hash_session+"|"+id);
+            jedis.hset("user#"+id, "idusuario", ""+usuario.getId());
+            jedis.hset("user#"+id, "sessionperfil", ""+usuario.getTipo_perfil());
+            jedis.hset("user#"+id, "sessionid", hash_session  );
+            
                 json.addProperty("id", usuario.getId());
                 json.addProperty("documento", usuario.getDocumento());
                 json.addProperty("usuario",   usuario.getUsuarioacc());
@@ -135,6 +130,9 @@ public class PerfilRolResource {
                 json.addProperty("apellido",  usuario.getApellido());
                 json.addProperty("estado",    usuario.getEstado());
                 json.addProperty("tipo_perfil",  usuario.getTipo_perfil());
+                
+                jedis.close();
+                jedis.disconnect();
 
         
         }

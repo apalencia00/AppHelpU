@@ -5,6 +5,9 @@
  */
 package com.mycompany.apphelpu.Services;
 
+import com.mycompany.apphelpu.Model.Usuario;
+import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
@@ -14,6 +17,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
+import redis.clients.jedis.Jedis;
 
 /**
  * REST Web Service
@@ -54,13 +58,29 @@ public class InitResource {
     
     
     
-    @Path("q/{idsession}")
+    @Path("q/{idusuario}")
     @GET
     
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String getJSON(@PathParam("idsession") String idsession ) {
-        return idsession;
+    public Usuario getJSON(@PathParam("idusuario") String idusuario ) {
+        
+        Usuario usuario = null;
+        
+        Jedis jedis = new Jedis("10.35.10.233", 6379);
+        Map<String, String> rediscamp = jedis.hgetAll("user#"+idusuario);
+        
+        String idusuarioredis = rediscamp.get("idusuario");
+        String perfil = rediscamp.get("sessionperfil");
+        String session = rediscamp.get("sessionid");
+        
+        usuario = new Usuario(idusuarioredis, session, perfil, "", 0);
+        
+        jedis.disconnect();
+        return usuario;
+        
+        
+        
     }
     
     

@@ -211,7 +211,7 @@ public class ServicioResource {
         System.out.println(""+ipAddress);
         result = sdao.addServicio(servicio);
      
-        pusher.trigger("my-channel", "my-event", Collections.singletonMap("message", "Hola Usuario, te respondo el mensaje el servidor de Andres F. Palencia F.."));
+        pusher.trigger("new-service", "my-new", Collections.singletonMap("message", "Servicio "+num_servicio+""+res+ "Creado con exito"));
             
         
         jobject.addProperty("codigo", result.getCodigo());
@@ -526,10 +526,8 @@ public class ServicioResource {
 
             String json = gson.toJson(listasunto, listType);
                                     
-            pusher.trigger("my-channel", "my-event", json);
-            
-            
-
+            pusher.trigger("list-service", "my-assignation", json);
+  
                 return  Response.ok(json, MediaType.APPLICATION_JSON)
                           .header("Access-Control-Allow-Origin", "*")
                           .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")

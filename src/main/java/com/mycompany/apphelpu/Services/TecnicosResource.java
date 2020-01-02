@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response;
  * @author usuario
  */
 @Path("tecnicos")
-public class TecnicosResourceResource {
+public class TecnicosResource {
 
     @Context
     private UriInfo context;
@@ -40,7 +40,7 @@ public class TecnicosResourceResource {
     /**
      * Creates a new instance of TecnicosResourceResource
      */
-    public TecnicosResourceResource() {
+    public TecnicosResource() {
     }
 
     /**
@@ -65,15 +65,15 @@ public class TecnicosResourceResource {
     
     
     @GET
-    @Path("listar")
+    @Path("listar/{serv_asig}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         
-        public Response detalleServicioBySolicitud( ){
+        public Response detalleServicioBySolicitud( @PathParam("serv_asig") String serv_asig ){
             
         Gson gson = new Gson();
         JsonObject obj = new JsonObject();
-        List<Tecnico> listasunto =  tdao.listarTecnicos();        
+        List<Tecnico> listasunto =  tdao.listarTecnicos(serv_asig);        
         Type ListType = new TypeToken<java.util.LinkedList<Tecnico>>(){}.getType();
         
         String json = gson.toJson(listasunto, ListType);

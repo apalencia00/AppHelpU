@@ -35,7 +35,7 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.apphelpu.Services.PerfilRolResource.class);
         resources.add(com.mycompany.apphelpu.Services.PuntoVentaResource.class);
         resources.add(com.mycompany.apphelpu.Services.ServicioResource.class);
-        resources.add(com.mycompany.apphelpu.Services.TecnicosResourceResource.class);
+        resources.add(com.mycompany.apphelpu.Services.TecnicosResource.class);
         resources.add(com.mycompany.apphelpu.Services.UsuarioResource.class);
     }
     
