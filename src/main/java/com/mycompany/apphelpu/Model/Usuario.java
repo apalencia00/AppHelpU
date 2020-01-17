@@ -119,9 +119,9 @@ public class Usuario {
         this.usuarioacc = usuarioacc;
         this.nombre = nombre;
         this.apellido = apellido;
-        
-        this.tipo_perfil = tipo_perfil;
         this.estado = estado;
+        this.tipo_perfil = tipo_perfil;
+        
     }
 
     public Usuario() {

@@ -10,6 +10,7 @@ import com.mycompany.apphelpu.Data.Database;
 import com.mycompany.apphelpu.Facade.IMenuServicio;
 import com.mycompany.apphelpu.Model.MenuPermisos;
 import com.mycompany.apphelpu.Model.MenuServicio;
+import com.mycompany.apphelpu.Model.OpcionesUsuario;
 import com.mycompany.apphelpu.Model.SubMenuServicio;
 
 import java.sql.PreparedStatement;
@@ -181,7 +182,8 @@ public class MenuServicioDAO implements IMenuServicio {
 "helpdesk_opciones.gnr_usuario us\n" +
 "where dtp.fk_usuario = us.gnr_idusuario \n" +
 "and dtp.fk_menu_servicio = ms.gnr_idmenu_servicio \n" +
-"and us.gnr_idusuario = ? \n" +
+"and us.gnr_idusuario = ?\n" +
+"and us.gnr_idusuario !=999999999\n" +
 "GROUp BY ms.gnr_idmenu_servicio\n" +
 "ORDER BY ms.gnr_idmenu_servicio ASC\n" +
 "");
@@ -405,7 +407,48 @@ public class MenuServicioDAO implements IMenuServicio {
      
      
      
-     
+     public List<OpcionesUsuario> opcionesUsuario(String cedula) {
+        
+        PreparedStatement   pst = null;
+        java.sql.ResultSet  rs  = null;
+               
+        JsonObject jsonob = new JsonObject();
+        List<OpcionesUsuario> listar_sub_menu_serv = new LinkedList<>();
+        
+                
+        try{ 
+            
+            postconn.conectar("apalencia", "asd.123*-");
+            
+            pst = postconn.getCon().prepareStatement("select * from helpdesk_opciones.opciones_usuario(?)");
+            pst.setString(1, cedula);
+            
+            rs = pst.executeQuery();
+            
+            while ( rs.next() ) {
+                
+                listar_sub_menu_serv.add( new OpcionesUsuario(rs.getInt(1), rs.getString(2), rs.getInt(3), rs.getString(4), rs.getString(5)) );         
+            }
+            
+            rs.close();
+            pst.close();
+            postconn.getCon().close();
+            
+           
+            return listar_sub_menu_serv;
+        
+    }catch(Exception e){
+            try {
+                postconn.getCon().close();
+            } catch (SQLException ex) {
+                Logger.getLogger(MenuServicioDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        e.printStackTrace();
+    }   
+        
+        return null;  
+        
+    }
        
     
 }

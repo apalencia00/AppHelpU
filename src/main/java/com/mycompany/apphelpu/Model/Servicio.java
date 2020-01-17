@@ -5,16 +5,14 @@
  */
 package com.mycompany.apphelpu.Model;
 
-import com.pusher.rest.Pusher;
-import java.io.Serializable;
 import java.sql.Date;
-import java.util.Collections;
 
 /**
  *
  * @author usuario
  */
 public class Servicio  {
+    
    
     private  int    id;
     private  String num_servicio;
@@ -36,7 +34,10 @@ public class Servicio  {
     private  String asunto;
     private  int ide_punto_venta;
     
-    public Servicio(){}
+    public Servicio(){
+        
+
+    }
 
     public int getIde_punto() {
         return ide_punto_venta;
@@ -169,6 +170,8 @@ public class Servicio  {
         this.fk_usuario = fk_usuario;
         this.estado = estado;
     }
+        
+    
 
 
     public Servicio(int id_solicitud,String num_servicio, Date fechaser, int ide_punto, String direccion, String estado) {

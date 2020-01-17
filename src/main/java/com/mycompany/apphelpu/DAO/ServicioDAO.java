@@ -124,7 +124,8 @@ public class ServicioDAO implements IServicio {
 "		   punto_fijo_movil,\n" +
 "		   descripcion,\n" +
 "		   fecha_servicio,\n" +
-"		   tec.nombre || ' ' || tec.apellido as nombrecompleto\n" +
+"		   tec.nombre || ' ' || tec.apellido as nombrecompleto,"
+                            + "asg.estado\n" +
 "		   \n" +
 "		   \n" +
 "				FROM helpdesk_core.gnr_solicitud s,\n" +
@@ -141,7 +142,7 @@ public class ServicioDAO implements IServicio {
                 
             while ( rs.next() ) {
                 
-                listar_servicio.add(new Servicio(rs.getString("num_solicitud"), rs.getInt("tipo_solicitud"), rs.getString("identificacion"), rs.getString("direccion"), rs.getString("sucursal"), rs.getInt("tipo_solicitud"), rs.getInt("fk_tipo_recepcion"), rs.getString("asunto"), rs.getString("punto_fijo_movil"), rs.getString("descripcion"), rs.getDate("fecha_servicio"), rs.getString("nombrecompleto"), 0, "") );
+                listar_servicio.add(new Servicio(rs.getString("num_solicitud"), rs.getInt("tipo_solicitud"), rs.getString("identificacion"), rs.getString("direccion"), rs.getString("sucursal"), rs.getInt("tipo_solicitud"), rs.getInt("fk_tipo_recepcion"), rs.getString("asunto"), rs.getString("punto_fijo_movil"), rs.getString("descripcion"), rs.getDate("fecha_servicio"), rs.getString("nombrecompleto"), 0, rs.getString("estado")) );
                 
             }
             
@@ -180,7 +181,19 @@ public class ServicioDAO implements IServicio {
                  ex.printStackTrace();
             }
             
-            pst = conexion.getCon().prepareStatement("SELECT s.id_solicitud,s.num_solicitud,s.fecha_servicio, substring(s.direccion from 0 for 21) as direccion FROM helpdesk_core.gnr_solicitud s,helpdesk_core.gnr_asignacion_solicitud ds, helpdesk_core.grn_personal_tecnico tec, helpdesk_opciones.gnr_usuario us WHERE s.id_solicitud     = ds.fk_solicitud AND tec.identificacion = us.gnr_dcment AND tec.identificacion = ? AND   ds.estado = 'A' ORDER BY 1 DESC;");
+            pst = conexion.getCon().prepareStatement("SELECT s.id_solicitud,\n" +
+"       s.num_solicitud,\n" +
+"	   s.fecha_servicio, \n" +
+"	   substring(s.direccion from 0 for 21) as direccion\n" +
+"	   \n" +
+"	   FROM helpdesk_core.gnr_solicitud s,\n" +
+"	   helpdesk_core.gnr_asignacion_solicitud ds, \n" +
+"	   helpdesk_core.grn_personal_tecnico tec\n" +	   
+"	   \n" +
+"	   WHERE s.id_solicitud     = ds.fk_solicitud \n" +
+"	   AND  ds.fk_tecnico = tec.id_personal_tecnico\n" +
+"	   AND  tec.identificacion = ?\n" +
+"	   AND ds.estado = 'A' ORDER BY 1 DESC;");
             pst.setString(1, usuario);
             rs = pst.executeQuery();
             
@@ -610,7 +623,8 @@ public class ServicioDAO implements IServicio {
         
     }
     
-       public List listServiciosByCriteria(int oper, String dato) {
+       
+    public List listServiciosByCriteria(int oper, String dato) {
         
         List listar_servicio = new LinkedList<>();
         
@@ -624,34 +638,74 @@ public class ServicioDAO implements IServicio {
                  ex.printStackTrace();
             }
             
+            if ( dato.equals("CA") ){
+                oper = 4;
+            }else if (dato.equals("AA")) {
+                oper = 5;
+            }
+            
+            if ( dato.equals("A")  ){
+                   oper = 2;
+            }else{
+                if ( dato.equals("C") ){
+                    oper = 1;
+                }else{
+                    if ( dato.equals("F") ){
+                        oper = 3;
+                    }
+                }
+            }
+             if( dato.equals("P") ) {
+                        oper = 6;
+                    }
+            
+            
             switch(oper) {
                 
                 case 1:
                     
                      query = "SELECT *, \n" +
-"       tp.descripcion as asunto, \n" +
-"	   tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
-"	   tiposerv.descripcion as desc_tipo_serv \n" +
+"       tp.descripcion as asunto\n" +
+"\n" +
+"	   FROM \n" +
+"	   helpdesk_core.gnr_solicitud sol, \n" +
+"	   helpdesk_core.gnr_tipo_asunto tp \n" +
 "	   \n" +
-"	   FROM helpdesk_core.gnr_solicitud, \n" +
-"	   helpdesk_core.gnr_tipo_asunto tp ,\n" +
-"	   helpdesk_core.gnr_asignacion_solicitud asg, \n" +
-"	   helpdesk_core.grn_personal_tecnico tec,\n" +
-"	   helpdesk_core.gnr_tipo_servicio tiposerv \n" +
-"	   \n" +
-"	   WHERE fk_asunto = id_tipo_asunto \n" +
-"	   and asg.fk_solicitud = id_solicitud \n" +
-"	   and tec.id_personal_tecnico = asg.fk_tecnico\n" +
-"	   and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio \n" +
-"	   and asg.fk_tipo_servicio = ? and asg.estado = 'A'";
+"	   WHERE sol.fk_asunto = tp.id_tipo_asunto \n" +
+"	   and sol.estado =?\n" +
+"          ";
                         pst = conexion.getCon().prepareStatement(query);
-                        pst.setInt(1, Integer.parseInt(dato));
+                        pst.setString(1, dato);
                         
                     break;
                     
                 case 2:
                     
-                    query = "SELECT *, \n" +
+                    query = "SELECT sol.*, \n" +
+"       tp.descripcion as asunto, \n" +
+"	   tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
+"	   tiposerv.descripcion as desc_tipo_serv \n" +
+"	  \n" +
+"	   FROM helpdesk_core.gnr_solicitud sol,\n" +
+"	        helpdesk_core.gnr_tipo_asunto tp ,\n" +
+"			helpdesk_core.gnr_asignacion_solicitud asg, \n" +
+"			helpdesk_core.grn_personal_tecnico tec,\n" +
+"			helpdesk_core.gnr_tipo_servicio tiposerv \n" +
+"			\n" +
+"			WHERE fk_asunto = id_tipo_asunto \n" +
+"			and asg.fk_solicitud = sol.id_solicitud \n" +
+"			and tec.id_personal_tecnico = asg.fk_tecnico\n" +
+"		        and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio \n" +
+"  			and sol.estado = 'A'\n" +
+"			and asg.estado != 'F'"; 
+                    pst = conexion.getCon().prepareStatement(query);
+                    //pst.setString(1, dato);
+                    
+                    break;
+                    
+                case 3:
+                    
+                     query = " SELECT *, \n" +
 "       tp.descripcion as asunto, \n" +
 "	   tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
 "	   tiposerv.descripcion as desc_tipo_serv \n" +
@@ -666,40 +720,76 @@ public class ServicioDAO implements IServicio {
 "			and asg.fk_solicitud = id_solicitud \n" +
 "			and tec.id_personal_tecnico = asg.fk_tecnico\n" +
 "			and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio \n" +
-"			and helpdesk_core.gnr_solicitud.estado = 'C' and asg.estado = ?"
-                            + ""
-                            + "ORDER BY id_solicitud DESC"; 
-                    pst = conexion.getCon().prepareStatement(query);
-                    pst.setString(1, dato);
-                    
-                    break;
-                    
-                case 3:
-                    
-                     query = "    SELECT *, tp.descripcion as asunto, \n" +
-"	          tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
-"			 tiposerv.descripcion as desc_tipo_serv \n" +
-"			  \n" +
-"			  FROM helpdesk_core.gnr_solicitud, \n" +
-"			       helpdesk_core.gnr_tipo_asunto tp ,\n" +
-"				   helpdesk_core.gnr_asignacion_solicitud asg, \n" +
-"				   helpdesk_core.grn_personal_tecnico tec,\n" +
-"				   helpdesk_core.gnr_tipo_servicio tiposerv \n" +
-"				   \n" +
-"				   \n" +
-"				   WHERE fk_asunto = id_tipo_asunto\n" +
-"				   and asg.fk_solicitud = id_solicitud \n" +
-"				   and tec.id_personal_tecnico = asg.fk_tecnico \n" +
-"				   and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio\n" +
-"				   and asg.fk_tecnico = ?"; 
+"			and asg.estado = 'F'"
+                            + ""; 
                      pst = conexion.getCon().prepareStatement(query);
-                     pst.setString(1, dato);
+                     //pst.setString(1, dato);
                     
                     break;
                     
                     
                 case 4 :
+                        
+                     query = "SELECT *, \n" +
+                                "       tp.descripcion as asunto\n" +
+                                "\n" +
+                                "	   FROM \n" +
+                                "	   helpdesk_core.gnr_solicitud sol, \n" +
+                                "	   helpdesk_core.gnr_tipo_asunto tp \n" +
+                                "	   \n" +
+                                "	   WHERE sol.fk_asunto = tp.id_tipo_asunto \n" +
+                                "	   and sol.estado ='C'\n" +
+                                "          and sol.fecha_servicio::DATE = NOW()::DATE";
+                        pst = conexion.getCon().prepareStatement(query);
+                        //pst.setString(1, dato);
                     
+                    break;
+                    
+                case 5 :
+                    
+                query = " SELECT *, \n" +
+"       tp.descripcion as asunto, \n" +
+"	   tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
+"	   tiposerv.descripcion as desc_tipo_serv \n" +
+"	   \n" +
+"	   FROM helpdesk_core.gnr_solicitud, \n" +
+"	        helpdesk_core.gnr_tipo_asunto tp ,\n" +
+"			helpdesk_core.gnr_asignacion_solicitud asg, \n" +
+"			helpdesk_core.grn_personal_tecnico tec,\n" +
+"			helpdesk_core.gnr_tipo_servicio tiposerv \n" +
+"			\n" +
+"			WHERE fk_asunto = id_tipo_asunto \n" +
+"			and asg.fk_solicitud = id_solicitud \n" +
+"			and tec.id_personal_tecnico = asg.fk_tecnico\n" +
+"			and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio \n" +
+"			and asg.estado = 'A'"
+                            + "and helpdesk_core.gnr_solicitud.fecha_servicio::DATE = NOW()::DATE"; 
+                    pst = conexion.getCon().prepareStatement(query);
+                    //pst.setString(1, dato);
+                    
+                    break;
+                    
+                case 6 :
+                    
+                   query = " SELECT *, \n" +
+"       tp.descripcion as asunto, \n" +
+"	   tec.nombre || ' ' || tec.apellido as nombrecompleto, \n" +
+"	   tiposerv.descripcion as desc_tipo_serv \n" +
+"	   \n" +
+"	   FROM helpdesk_core.gnr_solicitud, \n" +
+"	        helpdesk_core.gnr_tipo_asunto tp ,\n" +
+"			helpdesk_core.gnr_asignacion_solicitud asg, \n" +
+"			helpdesk_core.grn_personal_tecnico tec,\n" +
+"			helpdesk_core.gnr_tipo_servicio tiposerv \n" +
+"			\n" +
+"			WHERE fk_asunto = id_tipo_asunto \n" +
+"			and asg.fk_solicitud = id_solicitud \n" +
+"			and tec.id_personal_tecnico = asg.fk_tecnico\n" +
+"			and asg.fk_tipo_servicio = tiposerv.id_tipo_servicio \n" +
+"			and asg.estado = ?"
+                            + ""; 
+                    pst = conexion.getCon().prepareStatement(query);
+                    pst.setString(1, dato);
                     
                     break;
                     
@@ -707,7 +797,7 @@ public class ServicioDAO implements IServicio {
                 default:
                     
                     
-                     
+                     break;
                     
                 
             }
@@ -716,7 +806,7 @@ public class ServicioDAO implements IServicio {
             
             while ( rs.next() ) {
                 
-              listar_servicio.add(new Servicio(rs.getInt("id_solicitud"),rs.getString("num_solicitud"), rs.getInt("tipo_solicitud"), rs.getString("identificacion"), rs.getString("direccion"), rs.getString("sucursal"), rs.getInt("tipo_solicitud"), rs.getInt("fk_tipo_recepcion"), rs.getString("asunto"), rs.getString("punto_fijo_movil"), "", rs.getDate("fecha_servicio"), rs.getString("nombrecompleto"), 0, rs.getString("desc_tipo_serv")) );
+              listar_servicio.add(new Servicio(rs.getInt("id_solicitud"),rs.getString("num_solicitud"), rs.getInt("tipo_solicitud"), rs.getString("documento"), rs.getString("direccion"), rs.getString("sucursal"), rs.getInt("tipo_solicitud"), rs.getInt("fk_tipo_recepcion"), rs.getString("asunto"), rs.getString("punto_fijo_movil"), "", rs.getDate("fecha_servicio"), "", 0,"") );
                 
             }
             
@@ -1243,6 +1333,77 @@ public class ServicioDAO implements IServicio {
         
         
         return cantidad_dplas;
+        
+    }
+    
+    public java.util.List<Servicio> listarServiciosPorFecha(java.sql.Date fechai, java.sql.Date fechaf){
+        
+        List<Servicio> listar_servicio = new LinkedList<>();
+        
+        try {
+            try {
+                conexion = new Database();
+                conexion.conectar("apalencia", "asd.123*-");
+            } catch (IOException ex) {
+                
+            }
+
+                pst = conexion.getCon().prepareStatement("SELECT     s.num_solicitud,\n" +
+"	       s.tipo_solicitud,\n" +
+"		   identificacion, \n" +
+"		   substring(s.direccion from 0 for 21) as direccion,\n" +
+"		   sucursal,\n" +
+"		   s.tipo_solicitud,\n" +
+"		   s.fk_tipo_recepcion ,\n" +
+"		   tp.descripcion as asunto, \n" +
+"		   punto_fijo_movil,\n" +
+"		   descripcion,\n" +
+"		   fecha_servicio,\n" +
+"		   tec.nombre || ' ' || tec.apellido as nombrecompleto,\n" +
+"           asg.estado\n" +
+"		   \n" +
+"		   \n" +
+"				FROM helpdesk_core.gnr_solicitud s,\n" +
+"				     helpdesk_core.gnr_tipo_asunto tp , \n" +
+"					 helpdesk_core.gnr_asignacion_solicitud asg, \n" +
+"					 helpdesk_core.grn_personal_tecnico tec\n" +
+"					 \n" +
+"					WHERE fk_asunto = id_tipo_asunto \n" +
+"					and asg.fk_solicitud = id_solicitud \n" +
+"					and tec.id_personal_tecnico = asg.fk_tecnico \n" +
+"					and s.fecha_servicio::date >= ?::date and ?::date <= s.fecha_servicio::date\n" +
+"					ORDER BY s.id_solicitud DESC");
+                
+                pst.setDate(1, fechai);
+                pst.setDate(2, fechaf);
+            
+            rs = pst.executeQuery();
+            
+            while ( rs.next() ) {
+                
+                listar_servicio.add(new Servicio(rs.getString("num_solicitud"), rs.getInt("tipo_solicitud"), rs.getString("identificacion"), rs.getString("direccion"), rs.getString("sucursal"), rs.getInt("tipo_solicitud"), rs.getInt("fk_tipo_recepcion"), rs.getString("asunto"), rs.getString("punto_fijo_movil"), rs.getString("descripcion"), rs.getDate("fecha_servicio"), rs.getString("nombrecompleto"), 0, rs.getString("estado")) );
+                
+            }
+            
+            conexion.getCon().close();
+            return listar_servicio;
+            
+        } catch (SQLException ex) {
+            try {
+                conexion.getCon().close();
+            } catch (SQLException ex1) {
+                 ex.printStackTrace();
+            }
+             ex.printStackTrace();
+        }
+            
+        try {
+            conexion.getCon().close();
+        } catch (SQLException ex) {
+             ex.printStackTrace();
+        }
+              return null;  
+        
         
     }
     

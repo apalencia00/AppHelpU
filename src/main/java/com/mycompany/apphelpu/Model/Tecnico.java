@@ -115,6 +115,9 @@ public class Tecnico {
     public void setTipo_cargo(int tipo_cargo) {
         this.tipo_cargo = tipo_cargo;
     }
+
+    public Tecnico() {
+    }
     
     
     

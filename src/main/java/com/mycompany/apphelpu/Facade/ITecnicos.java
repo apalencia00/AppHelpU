@@ -6,6 +6,8 @@
 package com.mycompany.apphelpu.Facade;
 
 import com.mycompany.apphelpu.Model.Tecnico;
+import com.mycompany.apphelpu.Util.Resultado;
+import org.apache.poi.ss.formula.functions.T;
 
 
 
@@ -13,12 +15,12 @@ import com.mycompany.apphelpu.Model.Tecnico;
  *
  * @author usuario
  */
-public interface ITecnicos {
+public interface ITecnicos<T,E> {
     
     
-    public Tecnico crearTecnico();
-    public int borrarTecnico();
-    public Tecnico actualizarTecnico();
-    public java.util.List<Tecnico> listarTecnicos(String idserv);
+     Resultado crearTecnico(Tecnico tec);
+     int borrarTecnico();
+     Tecnico actualizarTecnico();
+     java.util.List<Tecnico> listarTecnicos(String idserv);
     
 }

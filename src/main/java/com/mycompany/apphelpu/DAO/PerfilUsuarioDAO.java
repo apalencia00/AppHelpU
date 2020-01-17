@@ -14,6 +14,8 @@ import com.mycompany.apphelpu.Model.MenuServicio;
 import com.mycompany.apphelpu.Model.PerfilUsuario;
 import com.mycompany.apphelpu.Model.SubMenuServicio;
 import com.mycompany.apphelpu.Model.Usuario;
+import com.mycompany.apphelpu.Model.UsuarioRedis;
+import java.io.IOException;
 
 
 
@@ -139,7 +141,7 @@ public class PerfilUsuarioDAO implements IPerfilUsuario{
             
             
             usuario = null;
-            e.printStackTrace();
+            usuario = new Usuario("error-connect",""+e.getMessage(), "E", "", 3);
         }
         
         
@@ -147,17 +149,18 @@ public class PerfilUsuarioDAO implements IPerfilUsuario{
         
     }
     
-    public void log_sesion_user_redis(String uuid, String ip, String fecha_act) {
+    public void log_sesion_user_redis(String uuid, String ip, String fecha_act, int perfil) {
                             
         try{
 
             postconn = new Database();
             postconn.conectar("apalencia", "asd.123*-");
 
-            PreparedStatement pst = postconn.getCon().prepareStatement("select * from helpdesk_opciones.reg_sesion_usr(?,?,?)");
+            PreparedStatement pst = postconn.getCon().prepareStatement("select * from helpdesk_opciones.reg_sesion_usr(?,?,?,?)");
             pst.setString(1, uuid);
             pst.setString(2, ip);
             pst.setString(3, fecha_act);
+            pst.setInt(4, perfil);
             
             pst.execute();
            
@@ -270,5 +273,117 @@ public class PerfilUsuarioDAO implements IPerfilUsuario{
         InetAddress ip = InetAddress.getLocalHost();
         return ip.getHostAddress();
     }
+       
+      public List<UsuarioRedis> validarSessionRedis(String iduser) {
+            
+        PreparedStatement   pst = null;
+        java.sql.ResultSet  rs  = null;
+               
+        JsonObject jsonob = new JsonObject();
+        String json = "";
+        List<UsuarioRedis> listar_sesiones_redis = new LinkedList<>();
+        Gson gson = new GsonBuilder().create();
+                
+        try{
+            
+            postconn = new Database();
+            postconn.conectar("apalencia", "asd.123*-");
+            
+            pst = postconn.getCon().prepareStatement(" select gnr_sesion_redis_id,gnr_sesion_redis_uuid, gnr_sesion_redis_ip, gnr_sesion_redis_fecha_sys,gnr_sesion_redis_min  from helpdesk_opciones.gnr_sesion_redis where gnr_sesion_redis_ip = ? and gnr_sesion_redis_fecha_sys > current_date - interval '20' day ");
+            pst.setString(1, iduser);
+            rs = pst.executeQuery();
+            
+            while ( rs.next() ) {
+                
+                listar_sesiones_redis.add( new UsuarioRedis(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4) ,rs.getInt(5)) );         
+            }
+            
+            rs.close();
+            pst.close();
+            postconn.getCon().close();
+            
+            
+            return listar_sesiones_redis;
+        
+    }catch(Exception e){
+        e.printStackTrace();
+    }   
+        
+        return null;
+           
+       }
+      
+      public String getNameSesion(String idtoken){
+            
+           String nombrecompleto = "";
+           
+           PreparedStatement   pst = null;
+           java.sql.ResultSet  rs  = null;
+        
+         try {
+            try {
+                postconn = new Database();
+                postconn.conectar("apalencia", "asd.123*-");
+            } catch (IOException ex) {
+                 ex.printStackTrace();
+            }
+            
+                pst = postconn.getCon().prepareStatement(" SELECT upper(gnr_nombre || ' ' || gnr_apellido) as nombre FROM helpdesk_opciones.gnr_usuario WHERE gnr_idusuario = ?");
+            
+            pst.setInt(1, Integer.parseInt(idtoken));
+            rs = pst.executeQuery();
+            
+            while ( rs.next() ) {
+                
+               nombrecompleto = rs.getString(1);
+                
+            }
+            
+            postconn.getCon().close();
+            return nombrecompleto;
+            
+         }catch ( Exception e ){
+            try {
+                postconn.getCon().close();
+            } catch (SQLException ex) {
+                 ex.printStackTrace();
+            }
+              e.printStackTrace();
+         }
+         
+        try {
+            postconn.getCon().close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+         return "";
+          
+      }
+      
+      public void cerrarSesion(int usuario){
+          
+          try{
+
+            postconn = new Database();
+            postconn.conectar("apalencia", "asd.123*-");
+
+            PreparedStatement pst = postconn.getCon().prepareStatement("select * FROM helpdesk_core.cerrar_sesiones(?) ");
+              
+            pst.setInt(1, usuario);
+            
+            pst.executeUpdate();
+
+            pst.close();
+            postconn.getCon().close();
+                 
+            
+        }catch( Exception e ){
+            
+            
+            
+            e.printStackTrace();
+        }
+          
+      }
     
 }

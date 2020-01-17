@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import com.mycompany.apphelpu.DAO.MenuServicioDAO;
 import com.mycompany.apphelpu.Model.MenuPermisos;
 import com.mycompany.apphelpu.Model.MenuServicio;
+import com.mycompany.apphelpu.Model.OpcionesUsuario;
 import com.mycompany.apphelpu.Model.SubMenuServicio;
 
 import java.lang.reflect.Type;
@@ -28,6 +29,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import redis.clients.jedis.Jedis;
 
 /**
  * REST Web Service
@@ -207,9 +209,17 @@ public class HelpDeskRolResource {
     @Produces(MediaType.APPLICATION_JSON)
     
     public Response registroPermisos(@FormParam("idmenu") String idmenu, @FormParam("idsubmenu") String idsubmenu, @FormParam("documento") String documento ) {
-            
+          
+        Jedis jedis = new Jedis("10.35.10.233", 6379);
+        
+        // SAVE SESSION ON REDIS WITH JEDIS
+            //jedis.sadd("nicknames", hash_session+"|"+id);
+            jedis.hset("perm#"+documento, "idmenur", ""+idmenu);
+            jedis.hset("perm#"+documento, "idsubmenur", ""+idsubmenu);
+
+        
         MenuPermisos menu = opcion.registroPermisos(new MenuPermisos(0, Integer.parseInt(idmenu), Integer.parseInt(idsubmenu), "A", null), documento);
-            
+                   
         JsonObject json = new JsonObject();
         json.addProperty("mensaje", "Registro Permisos");
         json.addProperty("documento", documento );
@@ -234,6 +244,31 @@ public class HelpDeskRolResource {
         Gson gson = new Gson();
         
         List<SubMenuServicio> listar_menu = opcion.getSubMenu_By_Menu(menu);
+         
+        Type listType = new TypeToken<LinkedList<SubMenuServicio>>(){}.getType();
+        String json = gson.toJson(listar_menu, listType);
+        
+        return Response.ok(json, MediaType.APPLICATION_JSON)
+                          .header("Access-Control-Allow-Origin", "*")
+                          .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                          .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                          
+                          .build();
+        
+    }
+    
+    // cargar opciones de un suaurio
+    
+    @GET
+    @Path("permisos_usuario/{cedula}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    
+    public Response opcionesUsuario(@PathParam("cedula") String cedula ){
+        
+        Gson gson = new Gson();
+        
+        List<OpcionesUsuario> listar_menu = opcion.opcionesUsuario(cedula);
          
         Type listType = new TypeToken<LinkedList<SubMenuServicio>>(){}.getType();
         String json = gson.toJson(listar_menu, listType);

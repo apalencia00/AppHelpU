@@ -18,21 +18,10 @@ import com.mycompany.apphelpu.Util.CFG;
 
 import java.lang.reflect.Type;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.json.Json;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
@@ -45,11 +34,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.redisson.Redisson;
-import org.redisson.api.RBucket;
-import org.redisson.api.RMap;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -106,7 +90,7 @@ public class PerfilRolResource {
         String hash_session = CFG.getSHA(id+"#"+passw);
         
         Usuario usuario = opcion.loginUsuario(id, passw); 
-        
+//     
         Calendar calendar = Calendar.getInstance();
         java.util.Date now = calendar.getTime();
 
@@ -115,13 +99,14 @@ public class PerfilRolResource {
         
         if ( usuario.getDocumento() != "N/A"  && usuario.getEstado() != "A" ) {
             
-            opcion.log_sesion_user_redis(id, id, timeStamp);
+            opcion.log_sesion_user_redis(id, id, timeStamp, usuario.getTipo_perfil());
             
             // SAVE SESSION ON REDIS WITH JEDIS
-            //jedis.sadd("nicknames", hash_session+"|"+id);
+            
             jedis.hset("user#"+id, "idusuario", ""+usuario.getId());
-            jedis.hset("user#"+id, "sessionperfil", ""+usuario.getTipo_perfil());
+            jedis.hset("user#"+id, "perfil", ""+usuario.getTipo_perfil());
             jedis.hset("user#"+id, "sessionid", hash_session  );
+            jedis.hset("user#"+id, "fecha", timeStamp);
             
                 json.addProperty("id", usuario.getId());
                 json.addProperty("documento", usuario.getDocumento());
@@ -130,6 +115,7 @@ public class PerfilRolResource {
                 json.addProperty("apellido",  usuario.getApellido());
                 json.addProperty("estado",    usuario.getEstado());
                 json.addProperty("tipo_perfil",  usuario.getTipo_perfil());
+                json.addProperty("fecha", timeStamp);
                 
                 jedis.close();
                 jedis.disconnect();
@@ -176,7 +162,7 @@ public class PerfilRolResource {
         Usuario usuario = opcion.loginUsuario(id, hash);      
         
         
-        if ( usuario.getDocumento() != "" ) {
+        if ( usuario.getDocumento() != "N/A"  && usuario.getEstado() != "A" ) {
 
             
         json.addProperty("id", usuario.getId());
@@ -188,17 +174,18 @@ public class PerfilRolResource {
         json.addProperty("tipo_perfil",  usuario.getTipo_perfil());
         
         }
-        if ( usuario.getDocumento() != "N/A" ) {
+         else if( usuario.getDocumento() == "N/A" ) {
             
-        json.addProperty("noencontrado", "Documento no Existe");
-        json.addProperty("usuario",   "Usuario no Valido o no Existe");
+                json.addProperty("codigo",         2);
+                json.addProperty("noencontrado", "Documento no Existe");
+                json.addProperty("valido",   "Usuario no Valido o no Existe");
 
         
         }else{
             
-        json.addProperty("codigo",         2);
-        json.addProperty("descripcion",   "Revisar Conexion a base de Datos");
-        json.addProperty("estado",        "E");
+                json.addProperty("codigo",         3);
+                json.addProperty("descripcion",   "Revisar Conexion a base de Datos");
+                json.addProperty("estado",        "E");
             
         }
        
@@ -296,6 +283,29 @@ public class PerfilRolResource {
                           .build();
         
     }
+    
+    @GET
+    @Path("sesionname/{idtoken}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    
+    public Response getName(@PathParam("idtoken") String idtoken ) {
+        
+        JsonObject json = new JsonObject();
+        
+        String nombre = opcion.getNameSesion(idtoken);
+        json.addProperty("nombre", nombre);
+            
+        return Response.ok(json.toString(), MediaType.APPLICATION_JSON)
+                          .header("Access-Control-Allow-Origin", "*")
+                          .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                          .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                          
+                          .build();
+        
+    }
+    
+    
     
     
 }

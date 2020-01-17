@@ -17,13 +17,17 @@ import com.mycompany.apphelpu.Model.Servicio;
 import com.mycompany.apphelpu.Model.UbicacionServicio;
 import com.mycompany.apphelpu.Model.Usuario;
 import com.mycompany.apphelpu.Model.Visita;
+import com.mycompany.apphelpu.Util.FILES;
 import com.mycompany.apphelpu.Util.Resultado;
 
 import com.pusher.rest.Pusher;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -33,7 +37,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -48,7 +51,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -77,6 +79,12 @@ public class ServicioResource {
     private String secret    = "771d8907662a040ac1bb";
     private String cluster   = "ap1";
     private int solicitud  ;
+    
+    /** The path to the folder where we want to store the uploaded files */
+	private static final String UPLOAD_FOLDER = "/home/aplicaciones/";
+        
+        FILES myfile = new FILES();
+
     
     JsonObject jobject = new JsonObject();
     Gson gson = new Gson();
@@ -132,6 +140,8 @@ public class ServicioResource {
         
     }
     
+    
+    
     @GET
     @Path("cargaasunto")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -157,7 +167,6 @@ public class ServicioResource {
     
     @POST
     @Path("crear")
-    
     @Consumes( { MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_XML }  )
     @Produces(  MediaType.APPLICATION_JSON )
 
@@ -176,53 +185,52 @@ public class ServicioResource {
             @FormParam("imagen")       String imagen,
             @FormParam("usuario")      String usuario,
             @FormParam("estado")       String estado,
-            @FormParam("idepunto")     String idepunto,
-            @Context HttpServletRequest req
-            ) throws JAXBException{
+            @FormParam("idepunto")     String idepunto
+            ) {
         
                     // Gets client IP address
-            String ipAddress = (req.getRemoteHost().equals("") || req.getRemoteHost() == null) ? "UNKNOWN" : req.getRemoteHost();
             
-           Pusher pusher = new Pusher(app_id, key, secret);
-           pusher.setCluster(cluster);
-              
+            
+            Pusher pusher = new Pusher(app_id, key, secret);
+            pusher.setCluster(cluster);
+             
             Map<String,String> map = new HashMap();
             map.clear();
 
         
-        int res = sdao.lastServicio();
+            int res = sdao.lastServicio();
+
+            servicio.setNum_servicio(num_servicio+""+res);
+            servicio.setFk_tipo_solicitante(Integer.parseInt(tipo_solicitante));
+            servicio.setIdentificacion_solictante(cedula);
+            servicio.setDireccion_servicio(direccion);
+            servicio.setSucursal(sucursal);
+            servicio.setTipo_recepcion(Integer.parseInt(tipo_recepcion));
+            servicio.setTipo_asunto(Integer.parseInt(tipo_asunto));
+            servicio.setPunto_movil_fijo(punto);
+            servicio.setDescripcion(descripcion);
+            servicio.setFechaser(null);
+            servicio.setImagen(imagen);
+            servicio.setFk_usuario(Integer.parseInt(usuario));
+            servicio.setEstado(estado);
+            servicio.setIde_punto(Integer.parseInt(idepunto));
         
-        servicio.setNum_servicio(num_servicio+""+res);
-        servicio.setFk_tipo_solicitante(Integer.parseInt(tipo_solicitante));
-        servicio.setIdentificacion_solictante(cedula);
-        servicio.setDireccion_servicio(direccion);
-        servicio.setSucursal(sucursal);
-        servicio.setTipo_recepcion(Integer.parseInt(tipo_recepcion));
-        servicio.setTipo_asunto(Integer.parseInt(tipo_asunto));
-        servicio.setPunto_movil_fijo(punto);
-        servicio.setDescripcion(descripcion);
-        servicio.setFechaser(null);
-        servicio.setImagen(imagen);
-        servicio.setFk_usuario(Integer.parseInt(usuario));
-        servicio.setEstado(estado);
-        servicio.setIde_punto(Integer.parseInt(idepunto));
         
-        
-        System.out.println(""+ipAddress);
-        result = sdao.addServicio(servicio);
-     
-        pusher.trigger("new-service", "my-new", Collections.singletonMap("message", "Servicio "+num_servicio+""+res+ "Creado con exito"));
             
-        
-        jobject.addProperty("codigo", result.getCodigo());
-        jobject.addProperty("respuesta", result.getResultado());
-        jobject.addProperty("estado", result.getEstado());
-        return Response.ok(jobject.toString(), MediaType.APPLICATION_JSON)
-                          .header("Access-Control-Allow-Origin", "*")
-                          .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
-                          .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
-                          
-                          .build();
+            result = sdao.addServicio(servicio);
+
+            pusher.trigger("new-service", "my-new", Collections.singletonMap("message", "Servicio "+num_servicio+""+res+ "Creado con exito"));
+
+            pusher = null;
+            jobject.addProperty("codigo", result.getCodigo());
+            jobject.addProperty("respuesta", result.getResultado());
+            jobject.addProperty("estado", result.getEstado());
+            return Response.ok(jobject.toString(), MediaType.APPLICATION_JSON)
+                              .header("Access-Control-Allow-Origin", "*")
+                              .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                              .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+
+                              .build();
         
               
         
@@ -243,7 +251,8 @@ public class ServicioResource {
     @FormParam("fecha_apertura")   String fecha_apertura,
     @FormParam("fecha_recepcion")  String fecha_recepcion,
     @FormParam("numservicio")      String num_servicio,
-    @FormParam("usuario")          String usuario
+    @FormParam("usuario")          String usuario,
+    @FormParam("tecniconuevo")     String tecniconuevo
      
     ){
         
@@ -262,15 +271,15 @@ public class ServicioResource {
                
   
         AsignarServicio asignarserv = 
-                new AsignarServicio(Integer.parseInt(tipo_urgencia), tecnico, obs, fecha_apertura, fecha_recepcion, ""+fecha_asig, num_servicio , Integer.parseInt(usuario), Integer.parseInt(tipo_servicio));
+                new AsignarServicio(Integer.parseInt(tipo_urgencia), tecnico, obs, fecha_apertura, fecha_recepcion, ""+fecha_asig, num_servicio , Integer.parseInt(usuario), Integer.parseInt(tipo_servicio), tecniconuevo);
         
         result = sdao.asignarServicio(asignarserv);
         
         Pusher pusher = new Pusher(app_id, key, secret);
-           pusher.setCluster(cluster);
+        pusher.setCluster(cluster);
               
-            Map<String,String> map = new HashMap();
-            map.clear();
+        Map<String,String> map = new HashMap();
+        map.clear();
 
         
 
@@ -835,6 +844,8 @@ public class ServicioResource {
                            
 
             Visita visita = sdao.cargarDatosDeVisita(servicio);
+            
+            if ( visita != null ) {
              
             jobject.addProperty("servicio", visita.getNum_servicio());
             jobject.addProperty("fecha", visita.getFecha_apertura());
@@ -844,6 +855,12 @@ public class ServicioResource {
             jobject.addProperty("identificacion", visita.getIdentificacion_tecnico());
             jobject.addProperty("nombre_tecnico", visita.getNombre_tecnico());
             jobject.addProperty("asunto", visita.getAsunto());
+            
+            }else{
+                jobject.addProperty("codigo", 1);
+                jobject.addProperty("error", "Evento de Aplicacion");
+                jobject.addProperty("observacion", "Al parecer este servicio ya no esta asignado");
+            }
             
            
             return Response.ok(jobject.toString(), MediaType.APPLICATION_JSON)
@@ -855,6 +872,98 @@ public class ServicioResource {
             
         
         }
+        
+        @GET
+        @Path("listar_fecha/{fechai}/{fechaf}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        
+        public Response listarPorFechas(@PathParam("fechai") String fechai, @PathParam("fechaf") String fechaf ) {
+            
+            System.out.println(""+fechai);
+            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            java.sql.Date fechaini = new java.sql.Date(Long.parseLong(fechai)); 
+            java.sql.Date fechafin = new java.sql.Date(Long.parseLong(fechaf)); 
+            System.out.println(""+fechaini);
+            
+            List<Servicio> lista_servicios = sdao.listarServiciosPorFecha(fechaini, fechafin);
+            
+            Type listType = new TypeToken<LinkedList<Servicio>>(){}.getType();
+
+            String json = gson.toJson(lista_servicios, listType);
+            
+            
+     
+            return  Response.ok(json, MediaType.APPLICATION_JSON)
+                          .header("Access-Control-Allow-Origin", "*")
+                          .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                          .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                          
+                          .build();
+            
+        }
+        
+        @POST
+        @Path("enviar_autorizacion")
+        @Consumes({ MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_XML })
+        @Produces(MediaType.APPLICATION_JSON)
+        
+        public Response enviarAutorizacion(){
+            
+            
+           JsonObject object = new JsonObject();
+           Pusher pusher = new Pusher(app_id, key, secret);
+           pusher.setCluster(cluster);
+           
+           object.addProperty("codigo", 1);
+           object.addProperty("respuesta", "autorizado");
+           pusher.trigger("my-authorization", "my-event", object.toString());
+            
+        
+           return Response.ok(object.toString(), MediaType.APPLICATION_JSON)
+                          .header("Access-Control-Allow-Origin", "*")
+                          .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                          .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                          
+                          .build();
+            
+        }
+        
+//        @POST
+//        @Path("subida")
+//        @Consumes({MediaType.MULTIPART_FORM_DATA })
+//                
+//        public Response subirArchivo(
+//                        @FormDataParam("file") InputStream uploadedInputStream,
+//			@FormDataParam("file") FormDataContentDisposition fileDetail
+//        )
+//                
+//                
+//                
+//        {
+//                
+//            // check if all form parameters are provided
+//		if (uploadedInputStream == null || fileDetail == null)
+//			return Response.status(400).entity("Invalid form data").build();
+//		// create our destination folder, if it not exists
+//		try {
+//			myfile.createFolderIfNotExists(UPLOAD_FOLDER);
+//		} catch (SecurityException se) {
+//			return Response.status(500)
+//					.entity("Can not create destination folder on server")
+//					.build();
+//		}
+//		String uploadedFileLocation = UPLOAD_FOLDER + fileDetail.getFileName();  
+//		try {
+//			myfile.saveToFile(uploadedInputStream, uploadedFileLocation);
+//		} catch (IOException e) {
+//			return Response.status(500).entity("Can not save file").build();
+//		}
+//		return Response.status(200)
+//				.entity("File saved to " + uploadedFileLocation).build();
+//
+//            
+//        }
         
     }
     

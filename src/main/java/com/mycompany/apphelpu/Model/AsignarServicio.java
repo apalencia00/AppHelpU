@@ -24,6 +24,7 @@ public class AsignarServicio {
     private int fk_usuario;
     private int fk_tipo_servicio;
     private String num_solicitud;
+    private String tecnico_nuevo;
 
     public AsignarServicio() {
     }
@@ -51,6 +52,19 @@ public class AsignarServicio {
         this.fk_usuario = fk_usuario;
         this.fk_tipo_servicio = fk_tipo_servicio;
     }
+    
+        public AsignarServicio(int tipo_urgencia, String tecnico_responsable, String obs, String fecha_apertura, String fecha_recepcion, String fecha_asignacion, String num_solicitud, int fk_usuario, int fk_tipo_servicio, String tecniconuevo) {
+        this.tipo_urgencia = tipo_urgencia;
+        this.tecnico_responsable = tecnico_responsable;
+        this.obs = obs;
+        this.fecha_apertura = fecha_apertura;
+        this.fecha_recepcion = fecha_recepcion;
+        this.fecha_asignacion = fecha_asignacion;
+        this.num_solicitud = num_solicitud;
+        this.fk_usuario = fk_usuario;
+        this.fk_tipo_servicio = fk_tipo_servicio;
+        this.tecnico_nuevo = tecniconuevo;
+    }
 
     public String getNum_solicitud() {
         return num_solicitud;
@@ -58,6 +72,14 @@ public class AsignarServicio {
 
     public void setNum_solicitud(String num_solicitud) {
         this.num_solicitud = num_solicitud;
+    }
+
+    public String getTecnico_nuevo() {
+        return tecnico_nuevo;
+    }
+
+    public void setTecnico_nuevo(String tecnico_nuevo) {
+        this.tecnico_nuevo = tecnico_nuevo;
     }
     
     
