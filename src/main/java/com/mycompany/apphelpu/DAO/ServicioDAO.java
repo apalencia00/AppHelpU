@@ -1026,7 +1026,7 @@ public class ServicioDAO implements IServicio {
                  ex.printStackTrace();
             }
             
-            pst = conexion.getCon().prepareStatement("SELECT id_solicitud, num_solicitud, tipo_solicitud, tipo_recepcion, tipo_asunto, punto_movil_fijo, descripcion, sucursal, direccion_servicio, fk_tipo_solicitante, identificacion, fk_usuario, estado, fecha_servicio, fecha_actualizacion, usuario_actualizacion\n" +
+            pst = conexion.getCon().prepareStatement("SELECT id_solicitud, num_solicitud, tipo_solicitud, fk_tipo_recepcion, tipo_asunto, punto_movil_fijo, descripcion, sucursal, direccion_servicio, fk_tipo_solicitante, identificacion, fk_usuario, estado, fecha_servicio, fecha_actualizacion, usuario_actualizacion\n" +
 "	FROM helpdesk_core.gnr_solicitud WHERE num_solicitud = ?");
             
             pst.setString(1, id.toString());
