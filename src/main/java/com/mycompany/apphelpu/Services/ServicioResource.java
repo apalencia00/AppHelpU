@@ -665,6 +665,15 @@ public class ServicioResource {
                 @FormParam("sim") String sim, 
                 @FormParam("operador") String operador ) throws SQLException {
             
+                System.out.println(""+servicio);
+                System.out.println(""+usuario);
+                System.out.println(""+descripcion);
+                System.out.println(""+estado_serv);
+                System.out.println(""+pendiente);
+                System.out.println(""+inventario);
+                System.out.println(""+imei);
+                System.out.println(""+sim);
+            
                 Resultado cerrar_servicio =  sdao.cerrarServicio(servicio, Integer.parseInt(usuario), descripcion,estado_serv, pendiente, Integer.parseInt(inventario), imei,sim, Integer.parseInt(operador)); // 55 n 82 21 2 piso
                 jobject.addProperty("codigo", cerrar_servicio.getCodigo());
                 jobject.addProperty("estado", cerrar_servicio.getEstado());

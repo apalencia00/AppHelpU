@@ -15,6 +15,7 @@ import com.mycompany.apphelpu.Model.PerfilUsuario;
 import com.mycompany.apphelpu.Model.SubMenuServicio;
 import com.mycompany.apphelpu.Model.Usuario;
 import com.mycompany.apphelpu.Util.CFG;
+import com.mycompany.apphelpu.Util.sendSMS;
 
 import java.lang.reflect.Type;
 import java.net.UnknownHostException;
@@ -115,7 +116,11 @@ public class PerfilRolResource {
                 json.addProperty("apellido",  usuario.getApellido());
                 json.addProperty("estado",    usuario.getEstado());
                 json.addProperty("tipo_perfil",  usuario.getTipo_perfil());
+                json.addProperty("telefono",  usuario.getSucursal());
                 json.addProperty("fecha", timeStamp);
+                
+                sendSMS send = new sendSMS();
+                send.sendSms(usuario.getSucursal());
                 
                 jedis.close();
                 jedis.disconnect();

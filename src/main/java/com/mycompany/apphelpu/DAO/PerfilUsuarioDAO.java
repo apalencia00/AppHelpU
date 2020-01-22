@@ -105,7 +105,7 @@ public class PerfilUsuarioDAO implements IPerfilUsuario{
             postconn = new Database();
             postconn.conectar("apalencia", "asd.123*-");
 
-            PreparedStatement pst = postconn.getCon().prepareStatement("SELECT gnr_idusuario, gnr_tipo_dcment ,gnr_dcment, gnr_usuario,  gnr_nombre, gnr_apellido ,tp.gnr_estado, gnr_tperfil FROM helpdesk_opciones.gnr_usuario, helpdesk_opciones.gnr_rol_perfil tp WHERE gnr_usuario = ? and gnr_passw = ? and gnr_tperfil = gnr_id_rol_perfil");
+            PreparedStatement pst = postconn.getCon().prepareStatement("SELECT gnr_idusuario, gnr_tipo_dcment ,gnr_dcment, gnr_usuario,  gnr_nombre, gnr_apellido ,tp.gnr_estado, gnr_tperfil,gnr_sucursal FROM helpdesk_opciones.gnr_usuario, helpdesk_opciones.gnr_rol_perfil tp WHERE gnr_usuario = ? and gnr_passw = ? and gnr_tperfil = gnr_id_rol_perfil");
                 
                 if ( pst == null ) {
                     
@@ -124,7 +124,7 @@ public class PerfilUsuarioDAO implements IPerfilUsuario{
             if ( rs.next() ) {
                 
                System.out.println(" res " + rs.getString(3) );
-               usuario = new Usuario(rs.getInt(1),rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7),  rs.getInt(8));
+               usuario = new Usuario(rs.getInt(1),rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7),  rs.getInt(8), rs.getString(9));
                 
             }else{
                usuario = new Usuario("N/A", "Usuario No Existe", "E", "", 0);

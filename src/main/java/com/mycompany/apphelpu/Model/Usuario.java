@@ -123,6 +123,20 @@ public class Usuario {
         this.tipo_perfil = tipo_perfil;
         
     }
+        
+       public Usuario(int id,String tipo_doc, String documento, String usuarioacc, String nombre, String apellido, String estado,int tipo_perfil, String sucursal) {
+        
+        this.id = id;
+        this.tipo_doc = tipo_doc;
+        this.documento = documento;
+        this.usuarioacc = usuarioacc;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.estado = estado;
+        this.tipo_perfil = tipo_perfil;
+        this.sucursal = sucursal;
+        
+    }
 
     public Usuario() {
     }
